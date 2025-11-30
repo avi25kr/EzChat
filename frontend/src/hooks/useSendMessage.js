@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 const useSendMessage = () => {
 	const [loading, setLoading] = useState(false);
-	const { messages, setMessages, selectedConversation } = useConversation();
+	const { setMessages, selectedConversation } = useConversation();
 
 	const sendMessage = async (message) => {
 		setLoading(true);
@@ -14,13 +14,19 @@ const useSendMessage = () => {
 				headers: {
 					"Content-Type": "application/json",
 				},
+				credentials: "include",
 				body: JSON.stringify({ message }),
 			});
 			const data = await res.json();
 			if (data.error) throw new Error(data.error);
 
-			setMessages([...messages, data]);
+			// Get the latest messages from Zustand store
+			const currentMessages = useConversation.getState().messages;
+			const messagesArray = Array.isArray(currentMessages) ? currentMessages : [];
+			const updated = [...messagesArray, data];
+			setMessages(updated);
 		} catch (error) {
+			console.error("Error sending message:", error);
 			toast.error(error.message);
 		} finally {
 			setLoading(false);

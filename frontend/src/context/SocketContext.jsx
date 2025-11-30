@@ -15,27 +15,43 @@ export const SocketContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (authUser) {
-			const socket = io("https://chat-app-yt.onrender.com", {
+			const newSocket = io("http://localhost:5050", {
 				query: {
 					userId: authUser._id,
 				},
+				autoConnect: true,
+				reconnection: true,
+				reconnectionDelay: 1000,
+				reconnectionAttempts: 5,
 			});
 
-			setSocket(socket);
+			setSocket(newSocket);
 
 			// socket.on() is used to listen to the events. can be used both on client and server side
-			socket.on("getOnlineUsers", (users) => {
+			newSocket.on("getOnlineUsers", (users) => {
 				setOnlineUsers(users);
 			});
 
-			return () => socket.close();
+			newSocket.on("connect", () => {
+				console.log("Socket connected:", newSocket.id);
+			});
+
+			newSocket.on("disconnect", (reason) => {
+				console.log("Socket disconnected:", reason);
+			});
+
+			return () => {
+				console.log("Cleaning up socket");
+				newSocket.close();
+				setSocket(null);
+			};
 		} else {
 			if (socket) {
 				socket.close();
 				setSocket(null);
 			}
 		}
-	}, [authUser]);
+	}, [authUser?._id]); // Only depend on the user ID, not the whole object
 
 	return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
 };

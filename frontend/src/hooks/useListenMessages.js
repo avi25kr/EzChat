@@ -10,14 +10,23 @@ const useListenMessages = () => {
 	const { messages, setMessages } = useConversation();
 
 	useEffect(() => {
-		socket?.on("newMessage", (newMessage) => {
+		if (!socket) return;
+
+		const handleNewMessage = (newMessage) => {
 			newMessage.shouldShake = true;
 			const sound = new Audio(notificationSound);
 			sound.play();
-			setMessages([...messages, newMessage]);
-		});
+			// Get the latest messages from Zustand store
+			const currentMessages = useConversation.getState().messages;
+			const messagesArray = Array.isArray(currentMessages) ? currentMessages : [];
+			setMessages([...messagesArray, newMessage]);
+		};
 
-		return () => socket?.off("newMessage");
-	}, [socket, setMessages, messages]);
+		socket.on("newMessage", handleNewMessage);
+
+		return () => {
+			socket.off("newMessage", handleNewMessage);
+		};
+	}, [socket, setMessages]); // Remove messages from deps since we're using getState()
 };
 export default useListenMessages;

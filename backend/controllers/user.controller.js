@@ -3,8 +3,10 @@ import User from "../models/user.model.js";
 export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id;
+		console.log("Fetching users for user:", loggedInUserId);
 
 		const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+		console.log("Found users:", filteredUsers.length);
 
 		res.status(200).json(filteredUsers);
 	} catch (error) {

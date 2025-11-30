@@ -9,13 +9,27 @@ const useGetConversations = () => {
 		const getConversations = async () => {
 			setLoading(true);
 			try {
-				const res = await fetch("/api/users");
+				const res = await fetch("/api/users", {
+					credentials: "include",
+				});
+				
+				console.log("Response status:", res.status);
+				
 				const data = await res.json();
+				console.log("Users fetched:", data);
+				console.log("Users array length:", Array.isArray(data) ? data.length : "Not an array");
+				
+				if (!res.ok) {
+					throw new Error(data.error || "Failed to fetch users");
+				}
+				
 				if (data.error) {
 					throw new Error(data.error);
 				}
-				setConversations(data);
+				
+				setConversations(Array.isArray(data) ? data : []);
 			} catch (error) {
+				console.error("Error fetching users:", error);
 				toast.error(error.message);
 			} finally {
 				setLoading(false);

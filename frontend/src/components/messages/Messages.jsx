@@ -9,24 +9,30 @@ const Messages = () => {
 	useListenMessages();
 	const lastMessageRef = useRef();
 
+	// Ensure messages is always an array
+	const messagesArray = Array.isArray(messages) ? messages : [];
+	
+	console.log("Messages component - messages:", messagesArray);
+	console.log("Messages component - loading:", loading);
+
 	useEffect(() => {
 		setTimeout(() => {
 			lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
 		}, 100);
-	}, [messages]);
+	}, [messagesArray]);
 
 	return (
 		<div className='px-4 flex-1 overflow-auto'>
 			{!loading &&
-				messages.length > 0 &&
-				messages.map((message) => (
+				messagesArray.length > 0 &&
+				messagesArray.map((message) => (
 					<div key={message._id} ref={lastMessageRef}>
 						<Message message={message} />
 					</div>
 				))}
 
 			{loading && [...Array(3)].map((_, idx) => <MessageSkeleton key={idx} />)}
-			{!loading && messages.length === 0 && (
+			{!loading && messagesArray.length === 0 && (
 				<p className='text-center'>Send a message to start the conversation</p>
 			)}
 		</div>

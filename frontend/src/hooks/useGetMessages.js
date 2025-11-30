@@ -10,19 +10,30 @@ const useGetMessages = () => {
 		const getMessages = async () => {
 			setLoading(true);
 			try {
-				const res = await fetch(`/api/messages/${selectedConversation._id}`);
+				const res = await fetch(`/api/messages/${selectedConversation._id}`, {
+					credentials: "include",
+				});
 				const data = await res.json();
 				if (data.error) throw new Error(data.error);
-				setMessages(data);
+				// Ensure we always set an array
+				const messagesArray = Array.isArray(data) ? data : [];
+				setMessages(messagesArray);
 			} catch (error) {
+				console.error("Error fetching messages:", error);
 				toast.error(error.message);
+				setMessages([]); // Set empty array on error
 			} finally {
 				setLoading(false);
 			}
 		};
 
-		if (selectedConversation?._id) getMessages();
-	}, [selectedConversation?._id, setMessages]);
+		if (selectedConversation?._id) {
+			getMessages();
+		} else {
+			// Clear messages when no conversation is selected
+			setMessages([]);
+		}
+	}, [selectedConversation?._id]); // Remove setMessages from deps - Zustand setters are stable
 
 	return { messages, loading };
 };
